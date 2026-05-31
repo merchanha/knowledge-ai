@@ -9,7 +9,7 @@ Knowledge management system with REST API, MCP server for coding agents, and Rea
 | [`api/`](api/) | Python FastAPI backend (REST + MCP) |
 | [`client/`](client/) | React SPA frontend (Week 15+) |
 
-See [`knowledge-ai-project-brief.md`](knowledge-ai-project-brief.md) for full architecture and stack details.
+See the project brief (local only) for full architecture and stack details.
 
 ## Quick Start (API)
 
