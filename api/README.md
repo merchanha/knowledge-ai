@@ -27,7 +27,16 @@ docker compose up -d
 uv run uvicorn knowledge_ai.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Health check: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+- Liveness: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+- Readiness (DB + Redis): [http://localhost:8000/api/v1/health/ready](http://localhost:8000/api/v1/health/ready)
+
+## Database migrations
+
+```bash
+docker compose up -d
+uv run alembic upgrade head
+uv run alembic current
+```
 
 ## Development
 

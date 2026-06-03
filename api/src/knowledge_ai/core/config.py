@@ -21,6 +21,11 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = Field(default=["http://localhost:5173"])
 
+    database_url: str = Field(
+        default="postgresql+asyncpg://knowledge_ai:knowledge_ai@localhost:5432/knowledge_ai",
+    )
+    redis_url: str = Field(default="redis://localhost:6379/0")
+
 
 @lru_cache
 def get_settings() -> Settings:

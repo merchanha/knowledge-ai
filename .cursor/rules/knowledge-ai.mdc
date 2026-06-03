@@ -1,0 +1,44 @@
+---
+description: Knowledge-AI monorepo conventions, architecture, and weekly plan context
+alwaysApply: true
+---
+
+# Knowledge-AI Project Rules
+
+## Layout
+
+- Monorepo: `api/` (FastAPI backend), `client/` (React SPA, Week 15+)
+- Do not commit `knowledge-ai-project-brief.md` (gitignored, local only)
+- Read `PROGRESS.md` at repo root for current week and handoff state
+
+## Backend architecture (`api/`)
+
+- Controller–service separation:
+  - `api/v1/*.py` — thin HTTP handlers
+  - `services/*.py` — business logic
+  - `models/*.py` — SQLAlchemy ORM
+  - `schemas/*.py` — Pydantic DTOs
+- Use `Depends(get_db)` for DB sessions; do not use global middleware for JWT auth
+- Postgres enums: always use `values_callable=str_enum_values` from `models/base.py`
+
+## Domain naming
+
+- Stored documents: **KnowledgeNeuron**, **Command**
+- MCP aggregated output: **StratumContext** (built by `ContextBuilder`)
+- Never use "pill" terminology
+
+## Stack
+
+- Python 3.12+, FastAPI, SQLAlchemy async, Alembic, PostgreSQL + pgvector, Redis, Celery (later)
+- Package manager: `uv` | Author: Henry Merchan <merchanha@gmail.com>
+
+## Workflow
+
+- Docs-first: write `api/docs/NN-*.md` before pushing each week
+- Run `ruff check .`, `mypy .`, `pytest` in `api/` before commits
+- Migrations: `uv run alembic upgrade head` after model changes
+
+## Testing locally
+
+- Only one uvicorn on port 8000 (`lsof -i :8000` if routes missing)
+- Health: `/api/v1/health` | Readiness: `/api/v1/health/ready`
