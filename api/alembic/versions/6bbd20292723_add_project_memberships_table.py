@@ -10,16 +10,27 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "6bbd20292723"
 down_revision: str | Sequence[str] | None = "20260531_0001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-project_membership_role_enum = sa.Enum("owner", "member", name="project_membership_role")
+project_membership_role_enum = postgresql.ENUM(
+    "owner",
+    "member",
+    name="project_membership_role",
+    create_type=False,
+)
 
 
 def upgrade() -> None:
+    # A failed prior run may have left project_membership_role with wrong labels
+    # (e.g. OWNER/MEMBER). Drop and recreate; table does not exist yet.
+    op.execute("DROP TYPE IF EXISTS project_membership_role")
+    op.execute("CREATE TYPE project_membership_role AS ENUM ('owner', 'member')")
+
     op.create_table(
         "project_memberships",
         sa.Column("user_id", sa.UUID(), nullable=False),

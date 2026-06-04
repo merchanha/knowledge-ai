@@ -16,10 +16,12 @@ down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-user_role_enum = sa.Enum("admin", "user", name="user_role")
+user_role_enum = sa.Enum("admin", "user", name="user_role", create_type=False)
 
 
 def upgrade() -> None:
+    user_role_enum.create(op.get_bind(), checkfirst=True)
+
     op.create_table(
         "users",
         sa.Column("id", sa.UUID(), nullable=False),
