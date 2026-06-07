@@ -1,6 +1,7 @@
 """SQLAlchemy ORM models."""
 
 from knowledge_ai.models.base import Base, TimestampMixin
+from knowledge_ai.models.casbin_rule import CasbinRule
 from knowledge_ai.models.project import Project
 from knowledge_ai.models.project_membership import ProjectMembership, ProjectMembershipRole
 from knowledge_ai.models.user import User, UserRole
@@ -8,6 +9,7 @@ from knowledge_ai.models.user import User, UserRole
 __all__ = [
     "Base",
     "TimestampMixin",
+    "CasbinRule",
     "Project",
     "ProjectMembership",
     "ProjectMembershipRole",

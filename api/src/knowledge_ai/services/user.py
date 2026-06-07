@@ -18,6 +18,11 @@ class UserService:
         """Load a user by primary key."""
         return await self._session.get(User, user_id)
 
+    async def list_all(self) -> list[User]:
+        """Return all users ordered by email (admin listing)."""
+        result = await self._session.execute(select(User).order_by(User.email))
+        return list(result.scalars().all())
+
     async def upsert_from_google(
         self,
         *,

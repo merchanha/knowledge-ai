@@ -7,14 +7,19 @@ from fastapi import FastAPI
 
 from knowledge_ai.api.v1.router import api_v1_router
 from knowledge_ai.core.config import settings
-from knowledge_ai.core.database import dispose_engine
+from knowledge_ai.core.database import dispose_engine, get_session_factory
 from knowledge_ai.core.redis import close_redis
 from knowledge_ai.middleware.cors import setup_cors
+from knowledge_ai.services.casbin_permission import CasbinPermissionService
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown lifecycle."""
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        await CasbinPermissionService(session, settings).ensure_base_policies()
+        await session.commit()
     yield
     await dispose_engine()
     await close_redis()

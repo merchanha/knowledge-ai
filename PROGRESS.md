@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 4** — PyCasbin RBAC, `CasbinPermissionService`
+**Week 5** — Directory domain model, `DirectoryService`
 
 ## Completed
 
@@ -36,6 +36,16 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/03-oauth-jwt-auth.md`
 - [x] Deps: `authlib`, `PyJWT`
 
+### Week 4 — Casbin RBAC
+
+- [x] `CasbinPermissionService` + casbin-async-sqlalchemy-adapter
+- [x] Roles (`admin`, `user`); directory permissions (`READ`, `WRITE`, `MANAGE`)
+- [x] `require_admin`, `require_directory_permission`; admin + permissions endpoints
+- [x] Alembic: `casbin_rule` table; startup seed `p, admin, *, *`
+- [x] OAuth login syncs Casbin grouping policy from `users.role`
+- [x] Doc: `api/docs/04-rbac-with-casbin.md`
+- [x] Deps: `casbin`, `casbin-async-sqlalchemy-adapter`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -63,12 +73,12 @@ uv run uvicorn knowledge_ai.main:app --reload --port 8000
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 4)
+## Next steps (Week 5)
 
-- [ ] `CasbinPermissionService` + casbin-async-sqlalchemy-adapter
-- [ ] Roles (`admin`, `user`); directory permissions (`READ`, `WRITE`, `MANAGE`)
-- [ ] Permission checks on resource endpoints; admin-only gates
-- [ ] Doc: `api/docs/04-rbac-with-casbin.md`
+- [ ] `directories` table (self-referential tree, `project_id`)
+- [ ] `DirectoryService`: create, rename, move, delete
+- [ ] Project creation hook → auto-create root directory
+- [ ] Doc: `api/docs/05-hierarchical-data-trees.md`
 
 ## Repo
 

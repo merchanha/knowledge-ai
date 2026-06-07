@@ -213,6 +213,7 @@ async def test_callback_invalid_state_redirects_with_error(
         AsyncMock(),
         jwt_service,
         AsyncMock(),
+        AsyncMock(),
         allowed_redirect_origins=TEST_SETTINGS.cors_origins,
     )
     app.dependency_overrides[get_oauth_flow_service] = lambda: mock_flow

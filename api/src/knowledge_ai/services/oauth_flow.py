@@ -5,6 +5,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 from knowledge_ai.models.user import User
+from knowledge_ai.services.casbin_permission import CasbinPermissionService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.user import UserService
@@ -27,12 +28,14 @@ class OAuthFlowService:
         oauth_service: OAuthService,
         jwt_service: JWTService,
         user_service: UserService,
+        permission_service: CasbinPermissionService,
         *,
         allowed_redirect_origins: list[str],
     ) -> None:
         self._oauth = oauth_service
         self._jwt = jwt_service
         self._users = user_service
+        self._permissions = permission_service
         self._allowed_redirect_origins = allowed_redirect_origins
 
     @property
@@ -100,8 +103,10 @@ class OAuthFlowService:
         full_name = profile.get("name")
         if full_name is not None and not isinstance(full_name, str):
             full_name = None
-        return await self._users.upsert_from_google(
+        user = await self._users.upsert_from_google(
             google_sub=google_sub,
             email=email,
             full_name=full_name,
         )
+        await self._permissions.sync_user_role(user)
+        return user
