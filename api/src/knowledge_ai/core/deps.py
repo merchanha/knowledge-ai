@@ -14,9 +14,11 @@ from knowledge_ai.core.database import get_db
 from knowledge_ai.models.user import User, UserRole
 from knowledge_ai.schemas.permissions import DirectoryPermission
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
+from knowledge_ai.services.directory import DirectoryService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.oauth_flow import OAuthFlowService
+from knowledge_ai.services.project import ProjectService
 from knowledge_ai.services.user import UserService
 
 _bearer_scheme = HTTPBearer(auto_error=False)
@@ -47,6 +49,16 @@ def get_casbin_permission_service(
 ) -> CasbinPermissionService:
     """Casbin enforcer bound to the request database session."""
     return CasbinPermissionService(session, settings)
+
+
+def get_directory_service(session: Annotated[AsyncSession, Depends(get_db)]) -> DirectoryService:
+    """Directory service bound to the request database session."""
+    return DirectoryService(session)
+
+
+def get_project_service(session: Annotated[AsyncSession, Depends(get_db)]) -> ProjectService:
+    """Project service bound to the request database session."""
+    return ProjectService(session)
 
 
 def get_oauth_flow_service(

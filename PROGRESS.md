@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 5** — Directory domain model, `DirectoryService`
+**Week 6** — Directory REST API, breadcrumbs, ZIP download
 
 ## Completed
 
@@ -46,6 +46,16 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/04-rbac-with-casbin.md`
 - [x] Deps: `casbin`, `casbin-async-sqlalchemy-adapter`
 
+### Week 5 — Directory domain model
+
+- [x] `directories` table (adjacency list: `parent_id`, scoped to `project_id`)
+- [x] `Directory` ORM model; one root per project; sibling name uniqueness
+- [x] `DirectoryService`: create, rename, move, delete (cascade + cycle rules)
+- [x] `ProjectService.create` → auto-create root directory (`"Root"`)
+- [x] Alembic: `20260613_0001_add_directories_table`
+- [x] Doc: `api/docs/05-hierarchical-data-trees.md`
+- [x] Tests: `tests/test_directory.py` (integration against Postgres)
+
 ## Key decisions
 
 | Topic | Decision |
@@ -56,6 +66,8 @@ Handoff file for new chat sessions. Update after each week.
 | Auth (MCP) | OAuth + PKCE (Week 12) |
 | Brief | `knowledge-ai-project-brief.md` is local-only (gitignored) |
 | Author email | merchanha@gmail.com |
+| Directory tree | Adjacency list (`parent_id`); fixed root name `"Root"` |
+| Delete cascade | ORM `cascade="all, delete-orphan"` + DB `ON DELETE CASCADE` |
 
 ## Local setup
 
@@ -73,12 +85,12 @@ uv run uvicorn knowledge_ai.main:app --reload --port 8000
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 5)
+## Next steps (Week 6)
 
-- [ ] `directories` table (self-referential tree, `project_id`)
-- [ ] `DirectoryService`: create, rename, move, delete
-- [ ] Project creation hook → auto-create root directory
-- [ ] Doc: `api/docs/05-hierarchical-data-trees.md`
+- [ ] Directory REST API: tree listing, breadcrumbs, CRUD endpoints
+- [ ] Wire `require_directory_permission` on directory routes
+- [ ] `DownloadService`: ZIP download for directory subtree
+- [ ] Doc: `api/docs/06-controller-service-separation.md`
 
 ## Repo
 

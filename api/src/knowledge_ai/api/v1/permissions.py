@@ -46,7 +46,7 @@ async def grant_directory_permission(
     _admin: Annotated[User, Depends(require_admin)],
     perm_service: Annotated[CasbinPermissionService, Depends(get_casbin_permission_service)],
 ) -> None:
-    """Grant a user access to a directory (admin only). Directories ship in Week 5."""
+    """Grant a user access to a directory (admin only)."""
     added = await perm_service.grant_directory_permission(
         user_id=body.user_id,
         directory_id=directory_id,
