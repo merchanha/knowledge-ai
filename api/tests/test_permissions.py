@@ -139,7 +139,13 @@ async def test_grant_and_list_directory_permissions(admin_client: AsyncClient) -
         return_value=[(directory_id, DirectoryPermission.READ)],
     )
 
+    mock_directory_service = AsyncMock()
+    mock_directory_service.get_by_id = AsyncMock(return_value=object())
+
+    from knowledge_ai.core.deps import get_directory_service
+
     app.dependency_overrides[get_casbin_permission_service] = lambda: mock_perm
+    app.dependency_overrides[get_directory_service] = lambda: mock_directory_service
 
     grant = await admin_client.post(
         f"/api/v1/permissions/directories/{directory_id}",

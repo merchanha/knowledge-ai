@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 6** — Directory REST API, breadcrumbs, ZIP download
+**Week 7** — KnowledgeNeuron CRUD (next)
 
 ## Completed
 
@@ -56,6 +56,16 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/05-hierarchical-data-trees.md`
 - [x] Tests: `tests/test_directory.py` (integration against Postgres)
 
+### Week 6 — Directory REST API
+
+- [x] `api/v1/directories.py` — tree, children, breadcrumbs, CRUD, ZIP download
+- [x] `require_directory_permission` wired on every route (dual WRITE check on move)
+- [x] `DownloadService` — BFS subtree walk → in-memory ZIP
+- [x] Permission grant/revoke validates directory exists (`404`)
+- [x] Casbin matcher fix: `MANAGE` ⊃ `WRITE` ⊃ `READ` (policy → request direction)
+- [x] Doc: `api/docs/06-controller-service-separation.md`
+- [x] Tests: `tests/test_directories_api.py` (JWT + Postgres integration)
+
 ## Key decisions
 
 | Topic | Decision |
@@ -85,12 +95,11 @@ uv run uvicorn knowledge_ai.main:app --reload --port 8000
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 6)
+## Next steps (Week 7)
 
-- [ ] Directory REST API: tree listing, breadcrumbs, CRUD endpoints
-- [ ] Wire `require_directory_permission` on directory routes
-- [ ] `DownloadService`: ZIP download for directory subtree
-- [ ] Doc: `api/docs/06-controller-service-separation.md`
+- [ ] `knowledge_neurons` model + `KnowledgeNeuronService`
+- [ ] CRUD REST API with directory permission checks
+- [ ] Doc: `api/docs/07-domain-modeling-patterns.md`
 
 ## Repo
 

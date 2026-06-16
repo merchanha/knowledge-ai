@@ -15,6 +15,7 @@ from knowledge_ai.models.user import User, UserRole
 from knowledge_ai.schemas.permissions import DirectoryPermission
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
 from knowledge_ai.services.directory import DirectoryService
+from knowledge_ai.services.download import DownloadService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.oauth_flow import OAuthFlowService
@@ -54,6 +55,13 @@ def get_casbin_permission_service(
 def get_directory_service(session: Annotated[AsyncSession, Depends(get_db)]) -> DirectoryService:
     """Directory service bound to the request database session."""
     return DirectoryService(session)
+
+
+def get_download_service(
+    directory_service: Annotated[DirectoryService, Depends(get_directory_service)],
+) -> DownloadService:
+    """Download service bound to the request directory service."""
+    return DownloadService(directory_service)
 
 
 def get_project_service(session: Annotated[AsyncSession, Depends(get_db)]) -> ProjectService:
