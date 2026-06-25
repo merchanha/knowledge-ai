@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 7** — KnowledgeNeuron CRUD (next)
+**Week 10** — Command CRUD (next)
 
 ## Completed
 
@@ -66,6 +66,36 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/06-controller-service-separation.md`
 - [x] Tests: `tests/test_directories_api.py` (JWT + Postgres integration)
 
+### Week 7 — KnowledgeNeuron CRUD
+
+- [x] `knowledge_neurons` table: title, content, `directory_id`, `metadata` (JSONB)
+- [x] `KnowledgeNeuron` ORM model; `KnowledgeNeuronService` CRUD + list by directory
+- [x] `api/v1/knowledge_neurons.py` — thin REST controllers with directory permission checks
+- [x] Alembic: `20260620_0001_add_knowledge_neurons_table`
+- [x] Doc: `api/docs/07-domain-modeling-patterns.md`
+- [x] Tests: `tests/test_knowledge_neuron.py`, `tests/test_knowledge_neurons_api.py`
+
+### Week 8 — Embedding pipeline
+
+- [x] `EmbeddingService` + Voyage AI client (`voyage-code-3`) via httpx
+- [x] Celery app + Redis broker; task `embed_knowledge_neuron(neuron_id)`
+- [x] Trigger embed on create/update via `KnowledgeNeuronService._enqueue_embed`
+- [x] pgvector column `embedding vector(1024)` on `knowledge_neurons`
+- [x] Settings: `VOYAGE_API_KEY`, `VOYAGE_MODEL`, `VOYAGE_EMBEDDING_DIMENSIONS`
+- [x] Alembic: `20260620_0002_add_knowledge_neuron_embedding`
+- [x] Doc: `api/docs/08-embeddings-and-celery.md`
+- [x] Deps: `celery`, `pgvector`
+
+### Week 9 — Vector search
+
+- [x] pgvector HNSW index (cosine) — `20260620_0003_add_knowledge_neuron_hnsw_index`
+- [x] `GET /api/v1/knowledge-neurons?search_term=...` scoped to readable directories
+- [x] `EmbeddingService.search`: embed query → cosine rank → top-k
+- [x] Redis query-embedding cache (5-minute TTL)
+- [x] `CasbinPermissionService.get_readable_directory_ids`
+- [x] Doc: `api/docs/09-vector-search-pgvector.md`
+- [x] Tests: `tests/test_embedding.py`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -78,6 +108,8 @@ Handoff file for new chat sessions. Update after each week.
 | Author email | merchanha@gmail.com |
 | Directory tree | Adjacency list (`parent_id`); fixed root name `"Root"` |
 | Delete cascade | ORM `cascade="all, delete-orphan"` + DB `ON DELETE CASCADE` |
+| Embedding model | Voyage AI `voyage-code-3` (1024 dimensions) |
+| Vector index | pgvector HNSW with `vector_cosine_ops` |
 
 ## Local setup
 
@@ -85,21 +117,23 @@ Handoff file for new chat sessions. Update after each week.
 cd api
 uv sync --all-extras --dev
 cp .env.example .env
-# Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET_KEY in .env
+# Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET_KEY, VOYAGE_API_KEY in .env
 docker compose up -d
 uv run alembic upgrade head
 uv run uvicorn knowledge_ai.main:app --reload --port 8000
+# Terminal 2 — Celery worker for embeddings:
+uv run celery -A knowledge_ai.core.celery_app worker --loglevel=info -Q embeddings
 ```
 
 **Google OAuth redirect URI:** `http://localhost:8000/api/v1/auth/google/callback`
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 7)
+## Next steps (Week 10)
 
-- [ ] `knowledge_neurons` model + `KnowledgeNeuronService`
-- [ ] CRUD REST API with directory permission checks
-- [ ] Doc: `api/docs/07-domain-modeling-patterns.md`
+- [ ] `commands` model + `CommandService` (same CRUD pattern, no embeddings)
+- [ ] Full REST API for commands
+- [ ] Doc: `api/docs/10-reusing-domain-patterns.md`
 
 ## Repo
 

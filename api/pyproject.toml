@@ -16,6 +16,8 @@ dependencies = [
     "cryptography>=48.0.0",
     "fastapi>=0.128.0",
     "httpx>=0.28.0",
+    "celery>=5.4",
+    "pgvector>=0.3.6",
     "psycopg[binary]>=3.2",
     "pydantic-settings>=2.12.0",
     "pyjwt>=2.13.0",
@@ -51,7 +53,7 @@ module = ["tests.*"]
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = ["authlib.*", "casbin.*", "casbin_async_sqlalchemy_adapter.*"]
+module = ["authlib.*", "casbin.*", "casbin_async_sqlalchemy_adapter.*", "celery.*", "pgvector.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -150,6 +150,13 @@ class CasbinPermissionService:
             entries.append((directory_id, perm))
         return entries
 
+    async def get_readable_directory_ids(self, user: User) -> list[uuid.UUID] | None:
+        """Return directory ids the user may READ, or None when admin (all directories)."""
+        if self.is_admin(user):
+            return None
+        grants = await self.list_directory_permissions_for_user(user.id)
+        return [directory_id for directory_id, _ in grants]
+
     async def reload_policy(self) -> None:
         """Reload policies from PostgreSQL after grant/revoke in another session."""
         enforcer = await self.get_enforcer()

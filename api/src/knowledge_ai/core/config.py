@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     )
     redis_url: str = Field(default="redis://localhost:6379/0")
 
+    voyage_api_key: str = Field(default="")
+    voyage_model: str = Field(default="voyage-code-3")
+    voyage_embedding_dimensions: int = Field(default=1024)
+
 
 @lru_cache
 def get_settings() -> Settings:

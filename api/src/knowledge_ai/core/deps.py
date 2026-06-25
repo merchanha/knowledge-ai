@@ -16,7 +16,9 @@ from knowledge_ai.schemas.permissions import DirectoryPermission
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
 from knowledge_ai.services.directory import DirectoryService
 from knowledge_ai.services.download import DownloadService
+from knowledge_ai.services.embedding import EmbeddingService
 from knowledge_ai.services.jwt import JWTService
+from knowledge_ai.services.knowledge_neuron import KnowledgeNeuronService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.oauth_flow import OAuthFlowService
 from knowledge_ai.services.project import ProjectService
@@ -62,6 +64,21 @@ def get_download_service(
 ) -> DownloadService:
     """Download service bound to the request directory service."""
     return DownloadService(directory_service)
+
+
+def get_knowledge_neuron_service(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> KnowledgeNeuronService:
+    """KnowledgeNeuron service bound to the request database session."""
+    return KnowledgeNeuronService(session)
+
+
+def get_embedding_service(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> EmbeddingService:
+    """Embedding service bound to the request database session."""
+    return EmbeddingService(session, settings)
 
 
 def get_project_service(session: Annotated[AsyncSession, Depends(get_db)]) -> ProjectService:
