@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from knowledge_ai.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from knowledge_ai.models.command import Command
     from knowledge_ai.models.knowledge_neuron import KnowledgeNeuron
     from knowledge_ai.models.project import Project
 
@@ -66,6 +67,11 @@ class Directory(Base, TimestampMixin):
     )
     knowledge_neurons: Mapped[list[KnowledgeNeuron]] = relationship(
         "KnowledgeNeuron",
+        back_populates="directory",
+        cascade="all, delete-orphan",
+    )
+    commands: Mapped[list[Command]] = relationship(
+        "Command",
         back_populates="directory",
         cascade="all, delete-orphan",
     )

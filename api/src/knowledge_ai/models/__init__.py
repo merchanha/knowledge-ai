@@ -2,6 +2,7 @@
 
 from knowledge_ai.models.base import Base, TimestampMixin
 from knowledge_ai.models.casbin_rule import CasbinRule
+from knowledge_ai.models.command import Command
 from knowledge_ai.models.directory import ROOT_DIRECTORY_NAME, Directory
 from knowledge_ai.models.knowledge_neuron import KnowledgeNeuron
 from knowledge_ai.models.project import Project
@@ -14,6 +15,7 @@ __all__ = [
     "CasbinRule",
     "Directory",
     "ROOT_DIRECTORY_NAME",
+    "Command",
     "KnowledgeNeuron",
     "Project",
     "ProjectMembership",

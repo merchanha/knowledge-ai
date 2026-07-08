@@ -66,7 +66,7 @@ class CasbinPermissionService:
         enforcer = await self.get_enforcer()
         subject = str(user.id)
         for role in (UserRole.ADMIN, UserRole.USER):
-            if enforcer.has_role_for_user(subject, role.value):
+            if await enforcer.has_role_for_user(subject, role.value):
                 await enforcer.delete_role_for_user(subject, role.value)
         await enforcer.add_role_for_user(subject, user.role.value)
 

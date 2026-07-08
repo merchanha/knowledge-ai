@@ -11,6 +11,7 @@ from knowledge_ai.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from knowledge_ai.models.directory import Directory
+    from knowledge_ai.models.project_membership import ProjectMembership
 
 
 class Project(Base, TimestampMixin):
@@ -23,6 +24,10 @@ class Project(Base, TimestampMixin):
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     directories: Mapped[list[Directory]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    memberships: Mapped[list[ProjectMembership]] = relationship(
         back_populates="project",
         cascade="all, delete-orphan",
     )

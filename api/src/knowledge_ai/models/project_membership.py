@@ -2,12 +2,17 @@
 
 import uuid
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import Boolean, Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from knowledge_ai.models.base import Base, TimestampMixin, str_enum_values
+
+if TYPE_CHECKING:
+    from knowledge_ai.models.project import Project
+    from knowledge_ai.models.user import User
 
 
 class ProjectMembershipRole(StrEnum):
@@ -48,3 +53,11 @@ class ProjectMembership(Base, TimestampMixin):
         default=ProjectMembershipRole.MEMBER,
         nullable=False,
     )
+    is_context_exposed: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    project: Mapped["Project"] = relationship(back_populates="memberships")
+    user: Mapped["User"] = relationship()

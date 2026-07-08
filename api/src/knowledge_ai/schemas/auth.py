@@ -28,3 +28,10 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UserUpdate(BaseModel):
+    """Admin update for application-wide user role or status."""
+
+    role: UserRole | None = None
+    is_active: bool | None = None

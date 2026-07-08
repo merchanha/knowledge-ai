@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 10** — Command CRUD (next)
+**Week 12** — MCP server foundation (next)
 
 ## Completed
 
@@ -96,6 +96,26 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/09-vector-search-pgvector.md`
 - [x] Tests: `tests/test_embedding.py`
 
+### Week 10 — Command CRUD
+
+- [x] `commands` table: title, content, `directory_id`, `metadata` (JSONB)
+- [x] `Command` ORM model; `CommandService` CRUD + list by directory (no embeddings)
+- [x] `api/v1/commands.py` — thin REST controllers with directory permission checks
+- [x] Alembic: `20260704_0001_add_commands_table`
+- [x] Doc: `api/docs/10-reusing-domain-patterns.md`
+- [x] Tests: `tests/test_command.py`, `tests/test_commands_api.py`
+
+### Week 11 — Project, Membership, Users, Account
+
+- [x] `ProjectService` — CRUD, archive/unarchive, delete
+- [x] `MembershipService` — add/remove members, roles; auto-grant `MANAGE` on project root
+- [x] `UserService.update` — admin role/status management; `PATCH /api/v1/admin/users/{id}`
+- [x] `GET /api/v1/account`, `PATCH /api/v1/account/projects/{id}` — `is_context_exposed` toggle
+- [x] `api/v1/projects.py` — project + membership REST routes
+- [x] Alembic: `20260704_0002_add_is_context_exposed_to_memberships`
+- [x] Doc: `api/docs/11-multi-tenant-project-scoping.md`
+- [x] Tests: `tests/test_project_membership.py`, `tests/test_projects_api.py`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -110,6 +130,8 @@ Handoff file for new chat sessions. Update after each week.
 | Delete cascade | ORM `cascade="all, delete-orphan"` + DB `ON DELETE CASCADE` |
 | Embedding model | Voyage AI `voyage-code-3` (1024 dimensions) |
 | Vector index | pgvector HNSW with `vector_cosine_ops` |
+| MCP exposure flag | `project_memberships.is_context_exposed` (per-user, per-project) |
+| Command CRUD | Duplicate KnowledgeNeuron pattern; no embeddings or Celery |
 
 ## Local setup
 
@@ -129,11 +151,12 @@ uv run celery -A knowledge_ai.core.celery_app worker --loglevel=info -Q embeddin
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 10)
+## Next steps (Week 12)
 
-- [ ] `commands` model + `CommandService` (same CRUD pattern, no embeddings)
-- [ ] Full REST API for commands
-- [ ] Doc: `api/docs/10-reusing-domain-patterns.md`
+- [ ] Install `mcp[cli]`; mount Streamable HTTP at `/mcp`
+- [ ] `/.well-known/*` OAuth discovery endpoints
+- [ ] `PKCEService` + MCP OAuth flow; `MCPAuthMiddleware` (route-scoped to `/mcp`)
+- [ ] Doc: `api/docs/12-mcp-oauth-and-protocol.md`
 
 ## Repo
 

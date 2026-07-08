@@ -14,11 +14,13 @@ from knowledge_ai.core.database import get_db
 from knowledge_ai.models.user import User, UserRole
 from knowledge_ai.schemas.permissions import DirectoryPermission
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
+from knowledge_ai.services.command import CommandService
 from knowledge_ai.services.directory import DirectoryService
 from knowledge_ai.services.download import DownloadService
 from knowledge_ai.services.embedding import EmbeddingService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.knowledge_neuron import KnowledgeNeuronService
+from knowledge_ai.services.membership import MembershipService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.oauth_flow import OAuthFlowService
 from knowledge_ai.services.project import ProjectService
@@ -73,6 +75,11 @@ def get_knowledge_neuron_service(
     return KnowledgeNeuronService(session)
 
 
+def get_command_service(session: Annotated[AsyncSession, Depends(get_db)]) -> CommandService:
+    """Command service bound to the request database session."""
+    return CommandService(session)
+
+
 def get_embedding_service(
     session: Annotated[AsyncSession, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
@@ -84,6 +91,14 @@ def get_embedding_service(
 def get_project_service(session: Annotated[AsyncSession, Depends(get_db)]) -> ProjectService:
     """Project service bound to the request database session."""
     return ProjectService(session)
+
+
+def get_membership_service(
+    session: Annotated[AsyncSession, Depends(get_db)],
+    perm_service: Annotated[CasbinPermissionService, Depends(get_casbin_permission_service)],
+) -> MembershipService:
+    """Membership service bound to the request database session."""
+    return MembershipService(session, perm_service)
 
 
 def get_oauth_flow_service(
@@ -169,3 +184,40 @@ def require_directory_permission(
         return user
 
     return _check
+
+
+async def require_project_member(
+    project_id: uuid.UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    membership_service: Annotated[MembershipService, Depends(get_membership_service)],
+) -> User:
+    """Require an authenticated admin or project member."""
+    if user.role == UserRole.ADMIN:
+        return user
+    membership = await membership_service.get_membership(
+        user_id=user.id,
+        project_id=project_id,
+    )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Project membership required",
+        )
+    return user
+
+
+async def require_project_owner_or_admin(
+    project_id: uuid.UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    membership_service: Annotated[MembershipService, Depends(get_membership_service)],
+) -> User:
+    """Require an authenticated admin or project owner."""
+    if user.role == UserRole.ADMIN:
+        return user
+    is_owner = await membership_service.is_owner(user_id=user.id, project_id=project_id)
+    if not is_owner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Project owner or admin access required",
+        )
+    return user
