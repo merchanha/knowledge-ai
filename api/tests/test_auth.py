@@ -215,6 +215,8 @@ async def test_callback_invalid_state_redirects_with_error(
         AsyncMock(),
         AsyncMock(),
         allowed_redirect_origins=TEST_SETTINGS.cors_origins,
+        mcp_google_redirect_uri=TEST_SETTINGS.mcp_google_redirect_uri,
+        mcp_auth_code_expire_seconds=600,
     )
     app.dependency_overrides[get_oauth_flow_service] = lambda: mock_flow
 

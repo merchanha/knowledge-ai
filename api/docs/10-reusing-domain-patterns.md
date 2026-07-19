@@ -25,7 +25,7 @@ Both entities live inside directory folders and share the same CRUD shape. The d
 | Semantic search | Yes — pgvector + Voyage AI (Weeks 8–9) | No — browse by directory only |
 | Embedding column | `embedding vector(1024)` | None |
 | Celery task on save | `embed_knowledge_neuron` | None |
-| MCP usage (Week 14) | Included in StratumContext tree + search tool | Listed in StratumContext tree + list tool |
+| MCP usage (Week 14) | Included in ProjectContext tree + search tool | Listed in ProjectContext tree + list tool |
 
 **Why only neurons get semantic search:** Search answers “find knowledge similar to this question.” Commands are short, procedural snippets you already know where to look — they are organized by folder, not discovered by meaning. Adding embeddings would add cost and complexity without a clear retrieval benefit.
 

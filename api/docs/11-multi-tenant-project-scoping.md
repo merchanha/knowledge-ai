@@ -102,7 +102,7 @@ sequenceDiagram
 
 Column: `project_memberships.is_context_exposed` (boolean, default `false`)
 
-**What it means:** When the user connects an MCP coding agent (Week 12+), the agent calls `get_stratum_context` (Week 14). Only projects where **this user** set `is_context_exposed = true` are included in the **StratumContext** payload.
+**What it means:** When the user connects an MCP coding agent (Week 12+), the agent calls `get_project_context` (Week 14). Only projects where **this user** set `is_context_exposed = true` are included in the **ProjectContext** payload.
 
 **Why on membership, not project:** Exposure is a **per-user choice**. Two members of the same project might disagree on whether agents should see it. The flag lives on the row that links user ↔ project.
 

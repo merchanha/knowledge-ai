@@ -115,6 +115,8 @@ def get_oauth_flow_service(
         UserService(session),
         perm_service,
         allowed_redirect_origins=settings.cors_origins,
+        mcp_google_redirect_uri=settings.mcp_google_redirect_uri,
+        mcp_auth_code_expire_seconds=settings.mcp_auth_code_expire_minutes * 60,
     )
 
 

@@ -52,6 +52,22 @@ class CommandService:
         )
         return list(result.scalars().all())
 
+    async def list_in_directories(self, directory_ids: list[UUID] | None) -> list[Command]:
+        """Return Commands scoped to readable directories (``None`` = all)."""
+        if directory_ids is not None and not directory_ids:
+            return []
+        query = select(Command).order_by(Command.title)
+        if directory_ids is not None:
+            query = query.where(Command.directory_id.in_(directory_ids))
+        result = await self._session.execute(query)
+        return list(result.scalars().all())
+
+    async def list_by_project(self, project_id: UUID) -> list[Command]:
+        """Return all Commands in a project's directory tree."""
+        directories = await self._directories.list_by_project(project_id)
+        directory_ids = [directory.id for directory in directories]
+        return await self.list_in_directories(directory_ids)
+
     async def create(
         self,
         *,

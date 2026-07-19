@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     voyage_model: str = Field(default="voyage-code-3")
     voyage_embedding_dimensions: int = Field(default=1024)
 
+    mcp_issuer_url: str = Field(default="http://localhost:8000")
+    mcp_client_id: str = Field(default="knowledge-ai-mcp")
+    mcp_google_redirect_uri: str = Field(
+        default="http://localhost:8000/api/v1/auth/mcp/callback",
+    )
+    mcp_auth_code_expire_minutes: int = 10
+
 
 @lru_cache
 def get_settings() -> Settings:

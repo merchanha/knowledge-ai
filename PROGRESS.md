@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 12** — MCP server foundation (next)
+**Week 15** — Frontend bootstrap (next)
 
 ## Completed
 
@@ -116,14 +116,41 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/11-multi-tenant-project-scoping.md`
 - [x] Tests: `tests/test_project_membership.py`, `tests/test_projects_api.py`
 
+### Week 12 — MCP foundation + agent auth
+
+- [x] `mcp[cli]`; FastMCP mounted at `/mcp` (Streamable HTTP); stdio via `python -m knowledge_ai.mcp.stdio`
+- [x] `/.well-known/oauth-authorization-server` + `/.well-known/oauth-protected-resource`
+- [x] `PKCEService`; `OAuthFlowService` MCP authorize/callback/token flow
+- [x] `MCPAuthMiddleware` — route-scoped Bearer JWT on `/mcp` only
+- [x] `GET /api/v1/auth/mcp/authorize`, `callback`, `POST /api/v1/auth/mcp/token`
+- [x] Doc: `api/docs/12-mcp-oauth-and-protocol.md`
+- [x] Tests: `tests/test_pkce.py`, `tests/test_mcp_auth.py`
+
+### Week 13 — MCP search tools
+
+- [x] Tool `search_knowledge_neurons` — reuses `EmbeddingService.search` + Casbin scoping
+- [x] Tool `list_commands` — browse by directory or all readable directories
+- [x] `CommandService.list_in_directories`
+- [x] Doc: `api/docs/13-mcp-tool-design.md`
+- [x] Tests: `tests/test_mcp_tools.py`
+
+### Week 14 — ProjectContext retrieval
+
+- [x] `ContextBuilder` — assembles `ProjectContext` from exposed project directory trees
+- [x] Tool `get_project_context` — projects where `is_context_exposed=true`
+- [x] `schemas/project_context.py` — `ProjectDirectoryNode`, `ProjectTree`, etc.
+- [x] stdio integration test: `tests/test_mcp_stdio.py`
+- [x] Doc: `api/docs/14-project-context-for-agents.md`
+- [x] Tests: `tests/test_context_builder.py`
+
 ## Key decisions
 
 | Topic | Decision |
 |-------|----------|
 | Repo layout | Monorepo: `api/` + `client/` |
-| Domain naming | `KnowledgeNeuron` (not "pill"); MCP output: `StratumContext` |
+| Domain naming | `KnowledgeNeuron` (not "pill"); MCP output: `ProjectContext` |
 | Auth (SPA) | Google OAuth + JWT access (fragment) + httpOnly refresh cookie |
-| Auth (MCP) | OAuth + PKCE (Week 12) |
+| Auth (MCP) | OAuth + PKCE via `/.well-known/*` → JWT Bearer on `/mcp` |
 | Brief | `knowledge-ai-project-brief.md` is local-only (gitignored) |
 | Author email | merchanha@gmail.com |
 | Directory tree | Adjacency list (`parent_id`); fixed root name `"Root"` |
@@ -132,6 +159,7 @@ Handoff file for new chat sessions. Update after each week.
 | Vector index | pgvector HNSW with `vector_cosine_ops` |
 | MCP exposure flag | `project_memberships.is_context_exposed` (per-user, per-project) |
 | Command CRUD | Duplicate KnowledgeNeuron pattern; no embeddings or Celery |
+| MCP transport | Streamable HTTP at `/mcp`; stdio for local dev (`MCP_STDIO_USER_ID` optional) |
 
 ## Local setup
 
@@ -145,18 +173,22 @@ uv run alembic upgrade head
 uv run uvicorn knowledge_ai.main:app --reload --port 8000
 # Terminal 2 — Celery worker for embeddings:
 uv run celery -A knowledge_ai.core.celery_app worker --loglevel=info -Q embeddings
+# Terminal 3 — stdio MCP (local agent testing):
+uv run python -m knowledge_ai.mcp.stdio
 ```
 
-**Google OAuth redirect URI:** `http://localhost:8000/api/v1/auth/google/callback`
+**Google OAuth redirect URIs (register both in Google Console):**
+
+- SPA: `http://localhost:8000/api/v1/auth/google/callback`
+- MCP: `http://localhost:8000/api/v1/auth/mcp/callback`
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 12)
+## Next steps (Week 15)
 
-- [ ] Install `mcp[cli]`; mount Streamable HTTP at `/mcp`
-- [ ] `/.well-known/*` OAuth discovery endpoints
-- [ ] `PKCEService` + MCP OAuth flow; `MCPAuthMiddleware` (route-scoped to `/mcp`)
-- [ ] Doc: `api/docs/12-mcp-oauth-and-protocol.md`
+- [ ] Create `client/` Vite + React 19 + TypeScript shell
+- [ ] Tailwind v4 + shadcn/ui base layout
+- [ ] Doc: `client/docs/01-react-spa-architecture.md` (or `api/docs` per plan)
 
 ## Repo
 

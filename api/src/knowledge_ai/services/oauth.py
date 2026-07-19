@@ -20,12 +20,18 @@ class OAuthService:
         self._client_secret = settings.google_client_secret
         self._redirect_uri = settings.google_redirect_uri
 
-    def create_authorization_url(self, *, state: str) -> str:
+    def create_authorization_url(
+        self,
+        *,
+        state: str,
+        redirect_uri: str | None = None,
+    ) -> str:
         """Build the Google consent screen URL."""
+        callback_uri = redirect_uri or self._redirect_uri
         client = AsyncOAuth2Client(
             client_id=self._client_id,
             client_secret=self._client_secret,
-            redirect_uri=self._redirect_uri,
+            redirect_uri=callback_uri,
             scope=GOOGLE_SCOPES,
         )
         uri, _ = client.create_authorization_url(
@@ -36,12 +42,18 @@ class OAuthService:
         )
         return str(uri)
 
-    async def exchange_code(self, code: str) -> dict[str, Any]:
+    async def exchange_code(
+        self,
+        code: str,
+        *,
+        redirect_uri: str | None = None,
+    ) -> dict[str, Any]:
         """Trade authorization code for Google token response."""
+        callback_uri = redirect_uri or self._redirect_uri
         async with AsyncOAuth2Client(
             client_id=self._client_id,
             client_secret=self._client_secret,
-            redirect_uri=self._redirect_uri,
+            redirect_uri=callback_uri,
         ) as client:
             token: dict[str, Any] = await client.fetch_token(GOOGLE_TOKEN_URL, code=code)
             return token

@@ -19,6 +19,6 @@ class AccountProjectRead(BaseModel):
 
 
 class AccountProjectExposureUpdate(BaseModel):
-    """Toggle MCP StratumContext exposure for one project."""
+    """Toggle MCP ProjectContext exposure for one project."""
 
     is_context_exposed: bool

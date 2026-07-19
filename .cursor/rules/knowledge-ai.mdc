@@ -24,7 +24,7 @@ alwaysApply: true
 ## Domain naming
 
 - Stored documents: **KnowledgeNeuron**, **Command**
-- MCP aggregated output: **StratumContext** (built by `ContextBuilder`)
+- MCP aggregated output: **ProjectContext** (built by `ContextBuilder`)
 - Never use "pill" terminology
 
 ## Stack

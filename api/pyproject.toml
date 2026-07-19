@@ -24,6 +24,7 @@ dependencies = [
     "redis>=5.0",
     "sqlalchemy[asyncio]>=2.0",
     "uvicorn[standard]>=0.40.0",
+    "mcp[cli]>=1.28.1",
 ]
 
 [build-system]
@@ -53,7 +54,7 @@ module = ["tests.*"]
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = ["authlib.*", "casbin.*", "casbin_async_sqlalchemy_adapter.*", "celery.*", "pgvector.*"]
+module = ["authlib.*", "casbin.*", "casbin_async_sqlalchemy_adapter.*", "celery.*", "pgvector.*", "mcp.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

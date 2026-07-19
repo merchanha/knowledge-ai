@@ -6,10 +6,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from knowledge_ai.api.v1.router import api_v1_router
+from knowledge_ai.api.well_known import router as well_known_router
 from knowledge_ai.core.config import settings
 from knowledge_ai.core.database import dispose_engine, get_session_factory
 from knowledge_ai.core.redis import close_redis
+from knowledge_ai.mcp.server import mcp_server
 from knowledge_ai.middleware.cors import setup_cors
+from knowledge_ai.middleware.mcp_auth import MCPAuthMiddleware
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
 
 
@@ -20,7 +23,10 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     async with session_factory() as session:
         await CasbinPermissionService(session, settings).ensure_base_policies()
         await session.commit()
-    yield
+
+    async with mcp_server.session_manager.run():
+        yield
+
     await dispose_engine()
     await close_redis()
 
@@ -34,7 +40,10 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     setup_cors(app)
+    app.add_middleware(MCPAuthMiddleware)
+    app.include_router(well_known_router)
     app.include_router(api_v1_router, prefix="/api/v1")
+    app.mount("/mcp", mcp_server.streamable_http_app())
     return app
 
 

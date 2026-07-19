@@ -18,6 +18,7 @@ class TokenKind(StrEnum):
     ACCESS = "access"
     REFRESH = "refresh"
     OAUTH_STATE = "oauth_state"
+    MCP_OAUTH_STATE = "mcp_oauth_state"
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,16 @@ class OAuthStateClaims:
     """Verified OAuth state payload."""
 
     redirect_uri: str
+
+
+@dataclass(frozen=True)
+class McpOAuthStateClaims:
+    """Verified MCP agent OAuth state binding PKCE to the client redirect."""
+
+    client_redirect_uri: str
+    code_challenge: str
+    code_challenge_method: str
+    client_state: str | None
 
 
 class JWTService:
@@ -105,6 +116,46 @@ class JWTService:
         if not isinstance(redirect_uri, str):
             raise InvalidTokenError("Invalid OAuth state claims")
         return OAuthStateClaims(redirect_uri=redirect_uri)
+
+    def create_mcp_oauth_state(
+        self,
+        *,
+        client_redirect_uri: str,
+        code_challenge: str,
+        code_challenge_method: str,
+        client_state: str | None,
+    ) -> str:
+        """Return signed state for the MCP agent OAuth round-trip."""
+        payload = {
+            "client_redirect_uri": client_redirect_uri,
+            "code_challenge": code_challenge,
+            "code_challenge_method": code_challenge_method,
+            "client_state": client_state,
+            "type": TokenKind.MCP_OAUTH_STATE,
+            "exp": datetime.now(UTC) + self._state_expire,
+            "iat": datetime.now(UTC),
+        }
+        return jwt.encode(payload, self._secret, algorithm=self._algorithm)
+
+    def verify_mcp_oauth_state(self, token: str) -> McpOAuthStateClaims:
+        """Decode and validate MCP agent OAuth state."""
+        payload = self._decode(token, expected_type=TokenKind.MCP_OAUTH_STATE)
+        client_redirect_uri = payload.get("client_redirect_uri")
+        code_challenge = payload.get("code_challenge")
+        code_challenge_method = payload.get("code_challenge_method")
+        client_state = payload.get("client_state")
+        if not isinstance(client_redirect_uri, str) or not isinstance(code_challenge, str):
+            raise InvalidTokenError("Invalid MCP OAuth state claims")
+        if not isinstance(code_challenge_method, str):
+            raise InvalidTokenError("Invalid MCP OAuth state claims")
+        if client_state is not None and not isinstance(client_state, str):
+            raise InvalidTokenError("Invalid MCP OAuth state claims")
+        return McpOAuthStateClaims(
+            client_redirect_uri=client_redirect_uri,
+            code_challenge=code_challenge,
+            code_challenge_method=code_challenge_method,
+            client_state=client_state,
+        )
 
     def _decode(self, token: str, *, expected_type: TokenKind) -> dict[str, Any]:
         try:

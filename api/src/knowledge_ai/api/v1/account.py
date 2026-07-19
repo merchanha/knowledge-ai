@@ -55,7 +55,7 @@ async def update_account_project_exposure(
     user: Annotated[User, Depends(get_current_user)],
     membership_service: Annotated[MembershipService, Depends(get_membership_service)],
 ) -> MembershipRead:
-    """Toggle whether MCP agents may receive this project's StratumContext."""
+    """Toggle whether MCP agents may receive this project's ProjectContext."""
     membership = await _run_membership_op(
         membership_service.set_context_exposed(
             user_id=user.id,

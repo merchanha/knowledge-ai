@@ -26,7 +26,7 @@ A **KnowledgeNeuron** is a stored knowledge document — a title plus body text 
 | `directory_id` | Which folder owns this neuron (FK → `directories`) |
 | `metadata` | Flexible JSON (tags, source URL, author notes) without schema migrations |
 
-This is **not** the MCP output. Agents receive a **StratumContext** (Week 14) — a layered tree built from many neurons and commands. A KnowledgeNeuron is one leaf document.
+This is **not** the MCP output. Agents receive a **ProjectContext** (Week 14) — a layered tree built from many neurons and commands. A KnowledgeNeuron is one leaf document.
 
 ---
 

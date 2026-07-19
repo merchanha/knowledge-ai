@@ -23,7 +23,7 @@ Later:
 
 - The **SPA** renders the tree in the sidebar (Week 17).
 - **Casbin** grants `READ` / `WRITE` / `MANAGE` per directory (Week 4 policies, Week 6 enforcement on routes).
-- **MCP `ContextBuilder`** walks exposed trees to build **StratumContext** (Week 14).
+- **MCP `ContextBuilder`** walks exposed trees to build **ProjectContext** (Week 14).
 
 The directory layer is the spine everything else hangs on.
 
