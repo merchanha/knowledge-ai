@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 15** — Frontend bootstrap (next)
+**Week 18** — KnowledgeNeuron feature module (next)
 
 ## Completed
 
@@ -143,6 +143,30 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Doc: `api/docs/14-project-context-for-agents.md`
 - [x] Tests: `tests/test_context_builder.py`
 
+### Week 15 — Frontend bootstrap
+
+- [x] `client/` Vite + React 19 + TypeScript + pnpm
+- [x] Tailwind CSS v4 + shadcn/ui; AppShell; React Router v7
+- [x] Axios → `/api/v1` (Vite proxy); TanStack Query (no Zustand)
+- [x] Sentry browser SDK (optional `VITE_SENTRY_DSN`)
+- [x] Doc: `client/docs/01-react-spa-architecture.md`
+
+### Week 16 — Auth feature module
+
+- [x] `/login` → Google OAuth via `GET /api/v1/auth/google/login`
+- [x] `/auth/callback` — `#token=` → in-memory session (`features/auth/session.ts` + `useSyncExternalStore`)
+- [x] Axios interceptors: Bearer + auto-refresh on 401 (`POST /auth/refresh`)
+- [x] `ProtectedRoute`; `GET /auth/me` via TanStack Query
+- [x] Doc: `client/docs/02-spa-auth-patterns.md`
+
+### Week 17 — Directories feature module
+
+- [x] Directory tree, breadcrumbs, create/rename/move/delete dialogs
+- [x] Admin permission grant/revoke UI
+- [x] Hooks: `useDirectoryTree`, `useBreadcrumbs`, `useDirectoryMutations`
+- [x] Wired to `/api/v1/projects/{id}/directories/*` + Casbin permission routes
+- [x] Doc: `client/docs/03-feature-module-structure.md`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -151,6 +175,7 @@ Handoff file for new chat sessions. Update after each week.
 | Domain naming | `KnowledgeNeuron` (not "pill"); MCP output: `ProjectContext` |
 | Auth (SPA) | Google OAuth + JWT access (fragment) + httpOnly refresh cookie |
 | Auth (MCP) | OAuth + PKCE via `/.well-known/*` → JWT Bearer on `/mcp` |
+| SPA server state | TanStack Query; access token in module store (not Zustand) |
 | Brief | `knowledge-ai-project-brief.md` is local-only (gitignored) |
 | Author email | merchanha@gmail.com |
 | Directory tree | Adjacency list (`parent_id`); fixed root name `"Root"` |
@@ -175,6 +200,8 @@ uv run uvicorn knowledge_ai.main:app --reload --port 8000
 uv run celery -A knowledge_ai.core.celery_app worker --loglevel=info -Q embeddings
 # Terminal 3 — stdio MCP (local agent testing):
 uv run python -m knowledge_ai.mcp.stdio
+# Terminal 4 — React SPA:
+cd ../client && pnpm install && pnpm dev
 ```
 
 **Google OAuth redirect URIs (register both in Google Console):**
@@ -182,13 +209,15 @@ uv run python -m knowledge_ai.mcp.stdio
 - SPA: `http://localhost:8000/api/v1/auth/google/callback`
 - MCP: `http://localhost:8000/api/v1/auth/mcp/callback`
 
+**SPA OAuth callback (CORS / redirect_uri):** `http://localhost:5173/auth/callback`
+
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 15)
+## Next steps (Week 18)
 
-- [ ] Create `client/` Vite + React 19 + TypeScript shell
-- [ ] Tailwind v4 + shadcn/ui base layout
-- [ ] Doc: `client/docs/01-react-spa-architecture.md` (or `api/docs` per plan)
+- [ ] KnowledgeNeuron feature module: `/knowledge` + directory-scoped views
+- [ ] CRUD dialogs; semantic search UI (`search_term`)
+- [ ] Doc: `client/docs/04-tanstack-query-patterns.md`
 
 ## Repo
 
