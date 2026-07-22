@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     voyage_api_key: str = Field(default="")
     voyage_model: str = Field(default="voyage-code-3")
     voyage_embedding_dimensions: int = Field(default=1024)
+    # Drop weak nearest-neighbors so gibberish queries do not look like hits.
+    search_min_similarity: float = Field(default=0.45, ge=0.0, le=1.0)
 
     mcp_issuer_url: str = Field(default="http://localhost:8000")
     mcp_client_id: str = Field(default="knowledge-ai-mcp")

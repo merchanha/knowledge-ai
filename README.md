@@ -31,4 +31,4 @@ pnpm install
 pnpm dev
 ```
 
-SPA: http://localhost:5173 — login via Google, then browse project directories.
+SPA: http://localhost:5173 — login via Google, then browse projects, KnowledgeNeurons, Commands, and account/MCP settings.

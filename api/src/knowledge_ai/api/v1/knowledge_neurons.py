@@ -90,6 +90,7 @@ async def search_knowledge_neurons(
     embedding_service: Annotated[EmbeddingService, Depends(get_embedding_service)],
     search_term: Annotated[str, Query(min_length=1)],
     limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    min_similarity: Annotated[float | None, Query(ge=0.0, le=1.0)] = None,
 ) -> list[KnowledgeNeuronSearchResult]:
     """Semantic search over KnowledgeNeurons in directories the user can READ."""
     directory_ids = await perm_service.get_readable_directory_ids(user)
@@ -97,6 +98,7 @@ async def search_knowledge_neurons(
         query=search_term,
         directory_ids=directory_ids,
         limit=limit,
+        min_similarity=min_similarity,
     )
     return [
         KnowledgeNeuronSearchResult(

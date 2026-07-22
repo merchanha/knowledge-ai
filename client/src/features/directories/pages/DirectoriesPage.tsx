@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingState'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { useCurrentUser } from '@/features/auth/hooks/use-auth'
+import { CommandPanel } from '@/features/commands/components/CommandPanel'
 import { DeleteDirectoryDialog } from '@/features/directories/components/DeleteDirectoryDialog'
 import { DirectoryBreadcrumbs } from '@/features/directories/components/DirectoryBreadcrumbs'
 import { DirectoryTree } from '@/features/directories/components/DirectoryTree'
@@ -17,7 +18,9 @@ import {
 } from '@/features/directories/hooks/use-directory-tree'
 import type { DirectoryTreeNode } from '@/features/directories/types'
 import { listMoveTargets } from '@/features/directories/utils/tree'
+import { KnowledgeNeuronPanel } from '@/features/knowledge-neurons/components/KnowledgeNeuronPanel'
 import { useProject } from '@/features/projects/hooks/use-projects'
+import { getApiErrorMessage } from '@/lib/errors'
 
 type DialogState =
   | { type: 'idle' }
@@ -37,8 +40,6 @@ export function DirectoriesPage() {
   const [dialog, setDialog] = useState<DialogState>({ type: 'idle' })
 
   const isAdmin = me?.role === 'admin'
-  // Weeks 15–17: treat members with tree access as able to write; fine-grained
-  // per-node Casbin UI lands with later admin polish. Admins always can.
   const canWrite = true
   const canManage = isAdmin
 
@@ -48,20 +49,21 @@ export function DirectoriesPage() {
   }, [dialog, flat])
 
   const selected =
-    directoryId ??
-    flat.find((d) => d.is_root)?.id ??
-    flat[0]?.id
+    directoryId ?? flat.find((d) => d.is_root)?.id ?? flat[0]?.id
+
+  const selectedName =
+    flat.find((d) => d.id === selected)?.name ?? 'Select a folder'
 
   const closeDialog = () => setDialog({ type: 'idle' })
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Loading directory tree…</p>
+    return <LoadingState label="Loading directory tree…" />
   }
 
   if (isError) {
     return (
       <p className="text-destructive">
-        Could not load directories: {(error as Error).message}
+        Could not load directories: {getApiErrorMessage(error)}
       </p>
     )
   }
@@ -78,67 +80,80 @@ export function DirectoriesPage() {
             {project?.name ?? '…'}
           </p>
           <h1 className="font-heading mt-1 text-3xl tracking-tight">
-            Directories
+            Workspace
           </h1>
         </div>
-        {selected ? (
-          <DirectoryBreadcrumbs
-            projectId={projectId}
-            directoryId={selected}
-          />
-        ) : null}
       </div>
 
-      <Separator />
-
-      <div className="grid min-h-[28rem] flex-1 gap-6 lg:grid-cols-[minmax(16rem,20rem)_1fr]">
-        <aside className="rounded-lg border border-border/80 bg-[oklch(0.99_0.004_85_/_0.7)] p-2">
-          <ScrollArea className="h-[28rem] pr-2">
-            <DirectoryTree
-              projectId={projectId}
-              tree={tree}
-              selectedId={selected}
-              canWrite={canWrite}
-              canManage={canManage}
-              isAdmin={isAdmin}
-              actions={{
-                onCreateChild: (parent) =>
-                  setDialog({ type: 'create', parent }),
-                onRename: (node) => setDialog({ type: 'rename', node }),
-                onMove: (node) => setDialog({ type: 'move', node }),
-                onDelete: (node) => setDialog({ type: 'delete', node }),
-                onManagePermissions: isAdmin
-                  ? (node) => setDialog({ type: 'permissions', node })
-                  : undefined,
-              }}
-            />
-          </ScrollArea>
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(15rem,18rem)_1fr]">
+        <aside className="lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-lg border border-border/80 bg-[oklch(0.99_0.004_85_/_0.85)] p-2 shadow-sm">
+            <p className="px-2 py-1.5 text-[0.65rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+              Folders
+            </p>
+            <ScrollArea className="h-[min(28rem,60vh)] pr-2 lg:h-[min(36rem,70vh)]">
+              <DirectoryTree
+                projectId={projectId}
+                tree={tree}
+                selectedId={selected}
+                canWrite={canWrite}
+                canManage={canManage}
+                isAdmin={isAdmin}
+                actions={{
+                  onCreateChild: (parent) =>
+                    setDialog({ type: 'create', parent }),
+                  onRename: (node) => setDialog({ type: 'rename', node }),
+                  onMove: (node) => setDialog({ type: 'move', node }),
+                  onDelete: (node) => setDialog({ type: 'delete', node }),
+                  onManagePermissions: isAdmin
+                    ? (node) => setDialog({ type: 'permissions', node })
+                    : undefined,
+                }}
+              />
+            </ScrollArea>
+          </div>
         </aside>
 
-        <div className="space-y-3">
-          <h2 className="font-heading text-xl">
-            {flat.find((d) => d.id === selected)?.name ?? 'Select a folder'}
-          </h2>
-          <p className="max-w-prose text-sm text-muted-foreground">
-            KnowledgeNeuron and Command lists for this folder arrive in Weeks
-            18–19. For now, navigate the tree, rename/move folders, and (as
-            admin) manage directory permissions.
-          </p>
-          {selected && canWrite ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                const parent = flat.find((d) => d.id === selected)
-                if (!parent) return
-                setDialog({
-                  type: 'create',
-                  parent: { ...parent, children: [] },
-                })
-              }}
-            >
-              New child folder
-            </Button>
-          ) : null}
+        <div className="min-w-0 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/70 bg-[oklch(0.99_0.004_85_/_0.7)] px-4 py-3">
+            <div className="min-w-0 space-y-1">
+              <h2 className="font-heading truncate text-xl">{selectedName}</h2>
+              {selected ? (
+                <DirectoryBreadcrumbs
+                  projectId={projectId}
+                  directoryId={selected}
+                />
+              ) : null}
+            </div>
+            {selected && canWrite ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const parent = flat.find((d) => d.id === selected)
+                  if (!parent) return
+                  setDialog({
+                    type: 'create',
+                    parent: { ...parent, children: [] },
+                  })
+                }}
+              >
+                New child folder
+              </Button>
+            ) : null}
+          </div>
+
+          <KnowledgeNeuronPanel
+            directoryId={selected}
+            canWrite={canWrite}
+            canManage={canManage || isAdmin}
+          />
+
+          <CommandPanel
+            directoryId={selected}
+            canWrite={canWrite}
+            canManage={canManage || isAdmin}
+          />
         </div>
       </div>
 

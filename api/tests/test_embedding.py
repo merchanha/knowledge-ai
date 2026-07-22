@@ -115,3 +115,40 @@ async def test_search_returns_neurons_by_cosine_similarity(
         limit=5,
     )
     assert empty == []
+
+
+@pytest.mark.asyncio
+async def test_search_filters_below_min_similarity(
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    docs_id, _neuron_id = await _create_neuron_with_embedding(
+        db_session,
+        title="Error Handling",
+        vector_index=0,
+    )
+
+    service = EmbeddingService(db_session, TEST_SETTINGS)
+
+    async def fake_embed_query(_query: str) -> list[float]:
+        # Orthogonal to the stored unit vector at index 0 → similarity ~0.
+        return _unit_vector(1)
+
+    monkeypatch.setattr(service, "embed_query", fake_embed_query)
+
+    weak = await service.search(
+        query="unrelated gibberish",
+        directory_ids=[docs_id],
+        limit=5,
+        min_similarity=0.45,
+    )
+    assert weak == []
+
+    all_hits = await service.search(
+        query="unrelated gibberish",
+        directory_ids=[docs_id],
+        limit=5,
+        min_similarity=0.0,
+    )
+    assert len(all_hits) == 1
+    assert all_hits[0].similarity < 0.45

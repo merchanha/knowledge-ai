@@ -27,6 +27,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshPromise: Promise<string | null> | null = null
 
+/** Always hit /auth/refresh — used after a 401 (existing Bearer may be dead). */
 async function refreshAccessToken(): Promise<string | null> {
   try {
     const { data } = await axios.post<TokenResponse>(
@@ -42,16 +43,21 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
-export function ensureAccessToken(): Promise<string | null> {
-  if (getAccessToken()) {
-    return Promise.resolve(getAccessToken())
-  }
+function dedupedRefresh(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken().finally(() => {
       refreshPromise = null
     })
   }
   return refreshPromise
+}
+
+/** Bootstrap: reuse in-memory token, otherwise refresh from httpOnly cookie. */
+export function ensureAccessToken(): Promise<string | null> {
+  if (getAccessToken()) {
+    return Promise.resolve(getAccessToken())
+  }
+  return dedupedRefresh()
 }
 
 api.interceptors.response.use(
@@ -72,7 +78,8 @@ api.interceptors.response.use(
     }
 
     original._retry = true
-    const token = await ensureAccessToken()
+    // Must refresh — do not return the same expired Bearer that caused the 401.
+    const token = await dedupedRefresh()
     if (!token) {
       return Promise.reject(error)
     }

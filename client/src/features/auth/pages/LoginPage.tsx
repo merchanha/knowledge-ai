@@ -1,10 +1,22 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/use-auth'
+import { clearAccessToken } from '@/features/auth/session'
+import { getApiErrorMessage } from '@/lib/errors'
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth()
+  const location = useLocation()
+  const { login, user, isLoadingUser, token, userError } = useAuth()
+
+  const sessionExpired =
+    Boolean(
+      (location.state as { sessionExpired?: boolean } | null)?.sessionExpired,
+    ) || Boolean(token && userError)
+
+  // Only treat the session as usable when /auth/me succeeded — a leftover
+  // Bearer in memory is not enough (expired JWT still looks "authenticated").
+  const canEnterApp = Boolean(user)
 
   return (
     <main className="relative flex min-h-dvh flex-col justify-end overflow-hidden px-6 pb-16 pt-10 sm:justify-center sm:px-12 lg:px-20">
@@ -28,13 +40,39 @@ export function LoginPage() {
         <h1 className="animate-fade-up-delay mt-5 max-w-md text-lg font-medium text-[oklch(0.92_0.02_85)] sm:text-xl">
           Project knowledge for coding agents — organized, searchable, scoped.
         </h1>
+
+        {sessionExpired && !canEnterApp ? (
+          <p
+            className="animate-fade-up-delay mt-6 max-w-md text-sm text-[oklch(0.88_0.04_65)]"
+            role="status"
+          >
+            Your session expired or the access token is no longer valid. Sign in
+            again to continue
+            {userError
+              ? ` (${getApiErrorMessage(userError, 'Invalid or expired token')})`
+              : ''}
+            .
+          </p>
+        ) : null}
+
         <div className="animate-fade-up-delay mt-10 flex flex-wrap items-center gap-4">
-          {isAuthenticated ? (
+          {canEnterApp ? (
             <Button asChild size="lg" variant="secondary">
               <Link to="/projects">Open projects</Link>
             </Button>
+          ) : isLoadingUser && token ? (
+            <p className="text-sm text-[oklch(0.9_0.02_85)]">
+              Checking session…
+            </p>
           ) : (
-            <Button size="lg" variant="secondary" onClick={login}>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => {
+                clearAccessToken()
+                login()
+              }}
+            >
               Continue with Google
             </Button>
           )}

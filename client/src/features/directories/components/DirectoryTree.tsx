@@ -28,6 +28,8 @@ interface DirectoryTreeProps {
   canWrite: boolean
   canManage: boolean
   isAdmin: boolean
+  /** Override link base; default `/projects/:id/directories` */
+  basePath?: string
   actions: DirectoryActions
 }
 
@@ -38,8 +40,12 @@ export function DirectoryTree({
   canWrite,
   canManage,
   isAdmin,
+  basePath,
   actions,
 }: DirectoryTreeProps) {
+  const path =
+    basePath ?? `/projects/${projectId}/directories`
+
   if (tree.length === 0) {
     return (
       <p className="px-2 py-4 text-sm text-muted-foreground">
@@ -53,7 +59,7 @@ export function DirectoryTree({
       {tree.map((node) => (
         <TreeNode
           key={node.id}
-          projectId={projectId}
+          basePath={path}
           node={node}
           depth={0}
           selectedId={selectedId}
@@ -68,7 +74,7 @@ export function DirectoryTree({
 }
 
 function TreeNode({
-  projectId,
+  basePath,
   node,
   depth,
   selectedId,
@@ -77,7 +83,7 @@ function TreeNode({
   isAdmin,
   actions,
 }: {
-  projectId: string
+  basePath: string
   node: DirectoryTreeNode
   depth: number
   selectedId?: string
@@ -121,7 +127,7 @@ function TreeNode({
         </button>
 
         <Link
-          to={`/projects/${projectId}/directories/${node.id}`}
+          to={`${basePath}/${node.id}`}
           className="flex min-w-0 flex-1 items-center gap-2 py-1.5"
         >
           <Icon className="size-4 shrink-0 text-[oklch(0.55_0.08_65)]" />
@@ -184,7 +190,7 @@ function TreeNode({
           {node.children.map((child) => (
             <TreeNode
               key={child.id}
-              projectId={projectId}
+              basePath={basePath}
               node={child}
               depth={depth + 1}
               selectedId={selectedId}

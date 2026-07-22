@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 18** — KnowledgeNeuron feature module (next)
+**Week 22** — Security hardening + observability (next)
 
 ## Completed
 
@@ -167,6 +167,36 @@ Handoff file for new chat sessions. Update after each week.
 - [x] Wired to `/api/v1/projects/{id}/directories/*` + Casbin permission routes
 - [x] Doc: `client/docs/03-feature-module-structure.md`
 
+### Week 18 — KnowledgeNeuron feature module
+
+- [x] `features/knowledge-neurons/` — api, hooks, list/form/delete dialogs, panel
+- [x] Routes: `/knowledge` (+ project/directory scoped); semantic search via `?q=` → `search_term`
+- [x] Hooks: `useKnowledgeNeurons`, `useKnowledgeNeuronSearch`, `useKnowledgeNeuronMutations`
+- [x] Directory detail pane embeds `KnowledgeNeuronPanel`
+- [x] Poll list while any neuron has `has_embedding: false` (chip updates without reload)
+- [x] Doc: `client/docs/04-tanstack-query-patterns.md`
+
+### Week 19 — Commands feature module
+
+- [x] `features/commands/` — same CRUD pattern as KnowledgeNeurons, no search/embeddings
+- [x] Routes: `/commands` (+ project/directory scoped)
+- [x] Directory detail pane embeds `CommandPanel`
+- [x] Shared browse shell (project picker cards + folder sidebar) for Knowledge/Commands
+
+### Week 20 — Account + Projects admin
+
+- [x] `/account` — project list + `is_context_exposed` toggle
+- [x] `/projects` create (admin); `/projects/:id` — edit, archive/unarchive, delete, members
+- [x] Doc: `client/docs/05-admin-ui-patterns.md`
+
+### Week 21 — Users admin + polish
+
+- [x] `/users` — admin role/active management (`AdminRoute`)
+- [x] Error boundary, toasts, loading/empty states, `getApiErrorMessage`, responsive nav
+- [x] Card UI (ItemCard + kebabs); session-expired login fix (clear dead Bearer)
+- [x] API: `search_min_similarity` (default 0.45) on semantic search
+- [x] Doc: `client/docs/06-frontend-error-handling.md`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -185,6 +215,9 @@ Handoff file for new chat sessions. Update after each week.
 | MCP exposure flag | `project_memberships.is_context_exposed` (per-user, per-project) |
 | Command CRUD | Duplicate KnowledgeNeuron pattern; no embeddings or Celery |
 | MCP transport | Streamable HTTP at `/mcp`; stdio for local dev (`MCP_STDIO_USER_ID` optional) |
+| SPA mutations | Invalidate-on-success (not optimistic by default); poll while embeddings pending |
+| Admin UI gates | `AdminRoute` + hide controls; API remains the security boundary |
+| Search floor | `search_min_similarity` default 0.45 (drop weak nearest-neighbors) |
 
 ## Local setup
 
@@ -213,11 +246,12 @@ cd ../client && pnpm install && pnpm dev
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 18)
+## Next steps (Week 22)
 
-- [ ] KnowledgeNeuron feature module: `/knowledge` + directory-scoped views
-- [ ] CRUD dialogs; semantic search UI (`search_term`)
-- [ ] Doc: `client/docs/04-tanstack-query-patterns.md`
+- [ ] `RateLimitMiddleware` (Redis) + JWT blacklist on logout
+- [ ] Sentry on FastAPI/SQLAlchemy/Celery/httpx; frontend source maps in CI
+- [ ] Resend + Jinja2 email templates
+- [ ] Doc: `api/docs/15-rate-limiting-token-revocation-sentry.md`
 
 ## Repo
 

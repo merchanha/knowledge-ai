@@ -122,10 +122,21 @@ class EmbeddingService:
         query: str,
         directory_ids: list[UUID] | None,
         limit: int,
+        min_similarity: float | None = None,
     ) -> list[SearchResult]:
-        """Return top-k KnowledgeNeurons by cosine similarity within allowed directories."""
+        """Return top-k KnowledgeNeurons by cosine similarity within allowed directories.
+
+        Always ranks by nearest neighbor; ``min_similarity`` drops weak matches so
+        unrelated queries (e.g. random strings) return an empty list instead of
+        low-scoring noise.
+        """
         query_vector = await self.embed_query(query)
         vector_literal = self._vector_literal(query_vector)
+        threshold = (
+            self._settings.search_min_similarity
+            if min_similarity is None
+            else min_similarity
+        )
 
         if directory_ids is not None and not directory_ids:
             return []
@@ -136,10 +147,12 @@ class EmbeddingService:
                 1 - (kn.embedding <=> CAST(:query_vector AS vector)) AS similarity
             FROM knowledge_neurons kn
             WHERE kn.embedding IS NOT NULL
+              AND 1 - (kn.embedding <=> CAST(:query_vector AS vector)) >= :min_similarity
         """
         params: dict[str, object] = {
             "query_vector": vector_literal,
             "limit": limit,
+            "min_similarity": threshold,
         }
         if directory_ids is not None:
             sql += " AND kn.directory_id = ANY(CAST(:directory_ids AS uuid[]))"

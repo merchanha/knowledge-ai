@@ -21,11 +21,17 @@ Axios uses `withCredentials: true` so the browser includes the refresh cookie on
 ### Axios interceptors
 
 1. **Request** — if an access token exists in memory, set `Authorization: Bearer <token>`.
-2. **Response** — on `401`, call `/auth/refresh` once (deduped), store the new access token, retry the original request. If refresh fails, clear the session so `ProtectedRoute` sends the user to `/login`.
+2. **Response** — on `401`, **always** call `/auth/refresh` once (deduped) — do not reuse the Bearer that just failed. Store the new access token and retry. If refresh fails, **clear** the in-memory token so the login page does not think you are still signed in.
+
+### “Open projects” vs “Continue with Google”
+
+`isAuthenticated` used to mean “memory has a JWT string.” An **expired** JWT still looked signed-in, so `/login` showed **Open projects**, `/auth/me` returned `Invalid or expired token`, and the button felt broken (redirect loop).
+
+Now `/login` only shows **Open projects** after a successful `/auth/me`. On auth failure, `ProtectedRoute` clears the token and passes `sessionExpired` so the user sees why and can sign in again.
 
 ### Protected routes
 
-`ProtectedRoute` bootstraps the session (try refresh if no in-memory token), then requires a successful `/auth/me` before rendering child routes. Unauthenticated users are redirected to `/login`.
+`ProtectedRoute` bootstraps the session (try refresh if no in-memory token), then requires a successful `/auth/me` before rendering child routes. Unauthenticated or failed-me users are redirected to `/login` with the dead token cleared.
 
 ### Session storage choice
 

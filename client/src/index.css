@@ -140,3 +140,18 @@
 .animate-soft-pulse {
   animation: soft-pulse 2.4s ease-in-out infinite;
 }
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card-in {
+  animation: card-in 0.4s ease-out both;
+}

@@ -49,6 +49,9 @@ ORDER BY kn.embedding <=> query_vector
 LIMIT 10
 ```
 
+**Important:** Without a threshold, top-k search *always* returns something — even for gibberish like `xsdccsssdaahh` you get the “least bad” neighbors (often ~0.3 similarity). That is not a keyword miss; it is nearest-neighbor behavior.
+
+We therefore apply **`search_min_similarity`** (default `0.45`, overridable via query `min_similarity` or env `SEARCH_MIN_SIMILARITY`). Rows below the floor are dropped so weak noise does not look like a hit.
 ---
 
 ## 3. HNSW index — fast search at scale
