@@ -10,6 +10,7 @@ from uuid import UUID
 from knowledge_ai.core.redis import get_redis
 from knowledge_ai.models.user import User
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
+from knowledge_ai.services.email import EmailService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.oauth import OAuthService
 from knowledge_ai.services.pkce import PKCEError, PKCEService
@@ -45,6 +46,7 @@ class OAuthFlowService:
         jwt_service: JWTService,
         user_service: UserService,
         permission_service: CasbinPermissionService,
+        email_service: EmailService,
         *,
         allowed_redirect_origins: list[str],
         mcp_google_redirect_uri: str,
@@ -54,6 +56,7 @@ class OAuthFlowService:
         self._jwt = jwt_service
         self._users = user_service
         self._permissions = permission_service
+        self._email = email_service
         self._allowed_redirect_origins = allowed_redirect_origins
         self._mcp_google_redirect_uri = mcp_google_redirect_uri
         self._mcp_auth_code_expire_seconds = mcp_auth_code_expire_seconds
@@ -275,10 +278,12 @@ class OAuthFlowService:
         full_name = profile.get("name")
         if full_name is not None and not isinstance(full_name, str):
             full_name = None
-        user = await self._users.upsert_from_google(
+        user, created = await self._users.upsert_from_google(
             google_sub=google_sub,
             email=email,
             full_name=full_name,
         )
         await self._permissions.sync_user_role(user)
+        if created:
+            await self._email.send_welcome(to_email=user.email, full_name=user.full_name)
         return user

@@ -68,12 +68,17 @@ class UserService:
         google_sub: str,
         email: str,
         full_name: str | None,
-    ) -> User:
-        """Create or update a user from Google OpenID claims."""
+    ) -> tuple[User, bool]:
+        """Create or update a user from Google OpenID claims.
+
+        Returns:
+            ``(user, created)`` where ``created`` is True on first insert.
+        """
         result = await self._session.execute(
             select(User).where(User.google_sub == google_sub),
         )
         user = result.scalar_one_or_none()
+        created = user is None
 
         if user is None:
             user = User(
@@ -89,4 +94,4 @@ class UserService:
             user.full_name = full_name
 
         await self._session.flush()
-        return user
+        return user, created

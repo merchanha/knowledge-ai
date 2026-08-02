@@ -40,7 +40,7 @@ async def db_session() -> AsyncIterator[AsyncSession]:
 
 @pytest.mark.asyncio
 async def test_context_builder_includes_only_exposed_projects(db_session: AsyncSession) -> None:
-    user = await UserService(db_session).upsert_from_google(
+    user, _ = await UserService(db_session).upsert_from_google(
         google_sub="ctx-user",
         email="ctx@example.com",
         full_name="Context User",
@@ -118,7 +118,7 @@ async def test_context_builder_includes_only_exposed_projects(db_session: AsyncS
 async def test_context_builder_returns_empty_when_nothing_exposed(
     db_session: AsyncSession,
 ) -> None:
-    user = await UserService(db_session).upsert_from_google(
+    user, _ = await UserService(db_session).upsert_from_google(
         google_sub="ctx-empty",
         email="empty@example.com",
         full_name=None,

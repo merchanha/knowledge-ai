@@ -1,1 +1,1 @@
-"""HTTP middleware components."""
+"""HTTP middleware components (CORS, rate limit, MCP auth)."""

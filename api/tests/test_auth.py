@@ -9,7 +9,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from knowledge_ai.core.config import Settings, get_settings
-from knowledge_ai.core.deps import get_oauth_flow_service
+from knowledge_ai.core.deps import get_jwt_service, get_oauth_flow_service
 from knowledge_ai.main import app
 from knowledge_ai.models.user import User, UserRole
 from knowledge_ai.services.jwt import JWTService
@@ -172,6 +172,33 @@ async def test_logout_clears_refresh_cookie() -> None:
     assert TEST_SETTINGS.refresh_cookie_name in set_cookie
 
 
+async def test_logout_blacklists_access_token(jwt_service: JWTService) -> None:
+    _apply_test_settings()
+    from fakeredis.aioredis import FakeRedis
+
+    fake = FakeRedis(decode_responses=True)
+    jwt_with_redis = JWTService(TEST_SETTINGS, redis=fake)
+    token, _ = jwt_with_redis.create_access_token(
+        user_id=uuid4(),
+        email="user@example.com",
+        role="user",
+    )
+    claims = jwt_with_redis.verify_access_token(token)
+
+    app.dependency_overrides[get_jwt_service] = lambda: jwt_with_redis
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/auth/logout",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    assert response.status_code == 204
+    assert await jwt_with_redis.is_access_token_revoked(claims.jti) is True
+    await fake.aclose()
+
+
 async def test_callback_redirects_with_token_fragment(
     jwt_service: JWTService,
 ) -> None:
@@ -212,6 +239,7 @@ async def test_callback_invalid_state_redirects_with_error(
     mock_flow = OAuthFlowService(
         AsyncMock(),
         jwt_service,
+        AsyncMock(),
         AsyncMock(),
         AsyncMock(),
         allowed_redirect_origins=TEST_SETTINGS.cors_origins,

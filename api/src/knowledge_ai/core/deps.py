@@ -17,6 +17,7 @@ from knowledge_ai.services.casbin_permission import CasbinPermissionService
 from knowledge_ai.services.command import CommandService
 from knowledge_ai.services.directory import DirectoryService
 from knowledge_ai.services.download import DownloadService
+from knowledge_ai.services.email import EmailService
 from knowledge_ai.services.embedding import EmbeddingService
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.knowledge_neuron import KnowledgeNeuronService
@@ -34,6 +35,13 @@ def get_jwt_service(
 ) -> JWTService:
     """JWT service for the current request settings."""
     return JWTService(settings)
+
+
+def get_email_service(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> EmailService:
+    """Transactional email service (Resend + Jinja2)."""
+    return EmailService(settings)
 
 
 def get_oauth_service(
@@ -107,6 +115,7 @@ def get_oauth_flow_service(
     oauth_service: Annotated[OAuthService, Depends(get_oauth_service)],
     jwt_service: Annotated[JWTService, Depends(get_jwt_service)],
     perm_service: Annotated[CasbinPermissionService, Depends(get_casbin_permission_service)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> OAuthFlowService:
     """OAuth flow orchestrator for the current request."""
     return OAuthFlowService(
@@ -114,6 +123,7 @@ def get_oauth_flow_service(
         jwt_service,
         UserService(session),
         perm_service,
+        email_service,
         allowed_redirect_origins=settings.cors_origins,
         mcp_google_redirect_uri=settings.mcp_google_redirect_uri,
         mcp_auth_code_expire_seconds=settings.mcp_auth_code_expire_minutes * 60,
@@ -140,6 +150,13 @@ async def get_current_user(
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+    if await jwt_service.is_access_token_revoked(claims.jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     user = await UserService(session).get_by_id(claims.user_id)
     if user is None or not user.is_active:

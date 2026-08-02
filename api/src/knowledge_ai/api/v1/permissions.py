@@ -9,6 +9,8 @@ from knowledge_ai.core.deps import (
     get_casbin_permission_service,
     get_current_user,
     get_directory_service,
+    get_email_service,
+    get_user_service,
     require_admin,
 )
 from knowledge_ai.models.user import User
@@ -20,6 +22,8 @@ from knowledge_ai.schemas.permissions import (
 )
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
 from knowledge_ai.services.directory import DirectoryService
+from knowledge_ai.services.email import EmailService
+from knowledge_ai.services.user import UserService
 
 router = APIRouter(prefix="/permissions", tags=["permissions"])
 
@@ -48,9 +52,12 @@ async def grant_directory_permission(
     _admin: Annotated[User, Depends(require_admin)],
     directory_service: Annotated[DirectoryService, Depends(get_directory_service)],
     perm_service: Annotated[CasbinPermissionService, Depends(get_casbin_permission_service)],
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ) -> None:
     """Grant a user access to a directory (admin only)."""
-    if await directory_service.get_by_id(directory_id) is None:
+    directory = await directory_service.get_by_id(directory_id)
+    if directory is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Directory {directory_id} not found",
@@ -64,6 +71,15 @@ async def grant_directory_permission(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Permission already granted",
+        )
+
+    target = await user_service.get_by_id(body.user_id)
+    if target is not None:
+        await email_service.send_permission_granted(
+            to_email=target.email,
+            full_name=target.full_name,
+            directory_name=directory.name,
+            permission=body.permission.value,
         )
 
 

@@ -4,6 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +20,8 @@ from knowledge_ai.schemas.auth import TokenResponse, UserResponse
 from knowledge_ai.services.jwt import JWTService
 from knowledge_ai.services.oauth_flow import OAuthFlowService
 from knowledge_ai.services.user import UserService
+
+_bearer_optional = HTTPBearer(auto_error=False)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -159,8 +162,15 @@ async def refresh_token(
 async def logout(
     response: Response,
     settings: Annotated[Settings, Depends(get_settings)],
+    jwt_service: Annotated[JWTService, Depends(get_jwt_service)],
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(_bearer_optional),
+    ] = None,
 ) -> None:
-    """Clear the refresh cookie (token blacklist added in Week 22)."""
+    """Clear the refresh cookie and blacklist the access token when present."""
+    if credentials is not None:
+        await jwt_service.revoke_access_token(credentials.credentials)
     _clear_refresh_cookie(response, settings)
 
 

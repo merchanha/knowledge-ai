@@ -39,6 +39,7 @@ def _make_flow(jwt_service: JWTService) -> OAuthFlowService:
         jwt_service,
         AsyncMock(),
         AsyncMock(),
+        AsyncMock(),
         allowed_redirect_origins=TEST_SETTINGS.cors_origins,
         mcp_google_redirect_uri=TEST_SETTINGS.mcp_google_redirect_uri,
         mcp_auth_code_expire_seconds=600,

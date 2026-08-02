@@ -38,6 +38,13 @@ class MCPAuthMiddleware(BaseHTTPMiddleware):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        if await jwt_service.is_access_token_revoked(claims.jti):
+            return JSONResponse(
+                status_code=401,
+                content={"error": "unauthorized", "detail": "Token has been revoked"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         session_factory = get_session_factory()
         async with session_factory() as session:
             user = await UserService(session).get_by_id(claims.user_id)

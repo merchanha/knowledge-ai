@@ -3,6 +3,9 @@
 from celery import Celery
 
 from knowledge_ai.core.config import settings
+from knowledge_ai.core.sentry import init_sentry
+
+init_sentry(settings)
 
 celery_app = Celery(
     "knowledge_ai",

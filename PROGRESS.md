@@ -4,7 +4,7 @@ Handoff file for new chat sessions. Update after each week.
 
 ## Current phase
 
-**Week 22** — Security hardening + observability (next)
+**Week 24** — Production deploy (next)
 
 ## Completed
 
@@ -197,6 +197,22 @@ Handoff file for new chat sessions. Update after each week.
 - [x] API: `search_min_similarity` (default 0.45) on semantic search
 - [x] Doc: `client/docs/06-frontend-error-handling.md`
 
+### Week 22 — Security hardening + observability
+
+- [x] `RateLimitService` + `RateLimitMiddleware` (Redis fixed windows; search + auth routes)
+- [x] JWT `jti` + Redis blacklist on logout; checked in `get_current_user` + `MCPAuthMiddleware`
+- [x] Sentry SDK (optional `SENTRY_DSN`): FastAPI, SQLAlchemy, Celery, httpx
+- [x] Frontend: `@sentry/vite-plugin` uploads source maps when CI secrets are set
+- [x] `EmailService` — Resend + Jinja2 (`welcome`, `permission_granted`); skips if no API key
+- [x] Doc: `api/docs/15-rate-limiting-token-revocation-sentry.md`
+
+### Week 23 — Testing + CI
+
+- [x] Backend: fakeredis tests for rate limits + JWT blacklist; email no-op tests; services cov ≥ 70%
+- [x] Frontend: Vitest + RTL (auth session, DirectoryTree, KnowledgeNeuronFormDialog)
+- [x] GitHub Actions: `.github/workflows/ci.yml` (api ruff/mypy/pytest + client lint/tsc/vitest)
+- [x] Docs: `api/docs/16-testing-async-python.md`, `client/docs/07-frontend-testing.md`
+
 ## Key decisions
 
 | Topic | Decision |
@@ -218,6 +234,10 @@ Handoff file for new chat sessions. Update after each week.
 | SPA mutations | Invalidate-on-success (not optimistic by default); poll while embeddings pending |
 | Admin UI gates | `AdminRoute` + hide controls; API remains the security boundary |
 | Search floor | `search_min_similarity` default 0.45 (drop weak nearest-neighbors) |
+| Rate limits | Redis fixed window; sensitive routes only; fail open if Redis blips |
+| Logout revoke | Blacklist access `jti` in Redis (TTL = remaining JWT life) + clear refresh cookie |
+| Observability | Optional Sentry DSN; `traces_sample_rate` default 0.1 |
+| Email | Resend optional; never block OAuth/permission success paths |
 
 ## Local setup
 
@@ -226,6 +246,7 @@ cd api
 uv sync --all-extras --dev
 cp .env.example .env
 # Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET_KEY, VOYAGE_API_KEY in .env
+# Optional: SENTRY_DSN, RESEND_API_KEY
 docker compose up -d
 uv run alembic upgrade head
 uv run uvicorn knowledge_ai.main:app --reload --port 8000
@@ -246,12 +267,12 @@ cd ../client && pnpm install && pnpm dev
 
 **TablePlus:** `knowledge_ai` / `knowledge_ai` @ `localhost:5432` / DB `knowledge_ai`
 
-## Next steps (Week 22)
+## Next steps (Week 24)
 
-- [ ] `RateLimitMiddleware` (Redis) + JWT blacklist on logout
-- [ ] Sentry on FastAPI/SQLAlchemy/Celery/httpx; frontend source maps in CI
-- [ ] Resend + Jinja2 email templates
-- [ ] Doc: `api/docs/15-rate-limiting-token-revocation-sentry.md`
+- [ ] NGINX/ALB in front of FastAPI (TLS, path routing)
+- [ ] Frontend: Vite build → S3 → CloudFront (OIDC)
+- [ ] Backend production deploy (Fly.io / Railway or ALB+ECS path in docs)
+- [ ] Docs: `client/docs/08-aws-s3-cloudfront-deploy.md` + `api/docs/17-production-checklist.md`
 
 ## Repo
 

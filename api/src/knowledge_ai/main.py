@@ -10,10 +10,14 @@ from knowledge_ai.api.well_known import router as well_known_router
 from knowledge_ai.core.config import settings
 from knowledge_ai.core.database import dispose_engine, get_session_factory
 from knowledge_ai.core.redis import close_redis
+from knowledge_ai.core.sentry import init_sentry
 from knowledge_ai.mcp.server import mcp_server
 from knowledge_ai.middleware.cors import setup_cors
 from knowledge_ai.middleware.mcp_auth import MCPAuthMiddleware
+from knowledge_ai.middleware.rate_limit import RateLimitMiddleware
 from knowledge_ai.services.casbin_permission import CasbinPermissionService
+
+init_sentry(settings)
 
 
 @asynccontextmanager
@@ -39,8 +43,11 @@ def create_app() -> FastAPI:
         debug=settings.debug,
         lifespan=lifespan,
     )
-    setup_cors(app)
+    # Starlette middleware is LIFO: last added runs first (outermost).
+    # Desired order: CORS → RateLimit → MCPAuth → routes.
     app.add_middleware(MCPAuthMiddleware)
+    app.add_middleware(RateLimitMiddleware)
+    setup_cors(app)
     app.include_router(well_known_router)
     app.include_router(api_v1_router, prefix="/api/v1")
     app.mount("/mcp", mcp_server.streamable_http_app())

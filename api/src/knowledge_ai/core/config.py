@@ -57,6 +57,22 @@ class Settings(BaseSettings):
     )
     mcp_auth_code_expire_minutes: int = 10
 
+    # Rate limiting (Week 22) — Redis fixed-window counters
+    rate_limit_enabled: bool = True
+    rate_limit_window_seconds: int = Field(default=60, ge=1)
+    rate_limit_search_per_window: int = Field(default=30, ge=1)
+    rate_limit_auth_per_window: int = Field(default=20, ge=1)
+
+    # Sentry (Week 22) — empty DSN skips init
+    sentry_dsn: str = Field(default="")
+    sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
+    sentry_environment: str = Field(default="development")
+
+    # Transactional email via Resend (Week 22)
+    resend_api_key: str = Field(default="")
+    email_from: str = Field(default="Knowledge-AI <onboarding@resend.dev>")
+    app_public_url: str = Field(default="http://localhost:5173")
+
 
 @lru_cache
 def get_settings() -> Settings:
